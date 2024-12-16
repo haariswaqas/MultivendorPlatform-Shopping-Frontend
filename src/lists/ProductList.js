@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../authentication/AuthContext';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { fetchProducts, updateLocalStorageWishlist, updateLocalStorageCart, addToWishlist, removeFromWishlist, addToCart, removeFromCart } from '../services/ProductServices';
 import { 
   HeartIcon, 
   ShoppingCartIcon, 
@@ -150,54 +150,38 @@ const ProductList = () => {
 
   // Fetch products from backend
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProductsFromService = async () => {
       try {
-        const response = await fetch('http://localhost:8002/', {
-          headers: {
-            Authorization: `Bearer ${authState.token}`, // Include the token in the headers
-          },
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        const data = await response.json();
+        const data = await fetchProducts(authState.token);
         console.log('Fetched Products:', data);
-        setProducts(data.products);
+        setProducts(data);
       } catch (error) {
         setError(error.message || 'Failed to fetch products');
       }
     };
 
-    fetchProducts();
+    fetchProductsFromService();
   }, [authState.token]); // Dependency on token
 
   // Save wishlist to localStorage
-  const updateLocalStorageWishlist = (updatedWishlist) => {
-    localStorage.setItem('wishlist', JSON.stringify(Array.from(updatedWishlist)));
+  const updateLocalStorageWishlistFromService = (updatedWishlist) => {
+    updateLocalStorageWishlist(updatedWishlist);
   };
 
   // Save cart to localStorage
-  const updateLocalStorageCart = (updatedCart) => {
-    localStorage.setItem('cart', JSON.stringify(Array.from(updatedCart)));
+  const updateLocalStorageCartFromService = (updatedCart) => {
+    updateLocalStorageCart(updatedCart);
   };
 
   // Add product to wishlist
-  const addToWishlist = async (productId) => {
+  const addToWishlistFromService = async (productId) => {
     setLoadingWishlist((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
-      const response = await axios.put(
-        'http://localhost:8002/wishlist',
-        { _id: productId },
-        {
-          headers: {
-            Authorization: `Bearer ${authState.token}`, // Include the token in the headers
-          },
-        }
-      );
+      const response = await addToWishlist(productId, authState.token);
       console.log('Product added to wishlist:', response.data);
       setWishlist((prev) => {
         const updatedWishlist = new Set(prev).add(productId); // Update wishlist state
-        updateLocalStorageWishlist(updatedWishlist); // Update localStorage
+        updateLocalStorageWishlistFromService(updatedWishlist); // Update localStorage
         return updatedWishlist;
       });
     } catch (error) {
@@ -212,19 +196,15 @@ const ProductList = () => {
   };
 
   // Remove product from wishlist
-  const removeFromWishlist = async (productId) => {
+  const removeFromWishlistFromService = async (productId) => {
     setLoadingWishlist((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
-      const response = await axios.delete(`http://localhost:8002/wishlist/${productId}`, {
-        headers: {
-          Authorization: `Bearer ${authState.token}`, // Include the token in the headers
-        },
-      });
+      const response = await removeFromWishlist(productId, authState.token);
       console.log('Product removed from wishlist:', response.data);
       setWishlist((prev) => {
         const updatedWishlist = new Set(prev);
         updatedWishlist.delete(productId); // Update wishlist state
-        updateLocalStorageWishlist(updatedWishlist); // Update localStorage
+        updateLocalStorageWishlistFromService(updatedWishlist); // Update localStorage
         return updatedWishlist;
       });
     } catch (error) {
@@ -239,26 +219,18 @@ const ProductList = () => {
   };
 
   // Add product to cart with quantity
-  const addToCart = async (productId, quantity) => {
+  const addToCartFromService = async (productId, quantity) => {
     setLoadingCart((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
       console.log('QUANTITYYYY',quantity)
-      const response = await axios.put(
-        'http://localhost:8002/cart',
-        { _id: productId, qty: quantity },
-        {
-          headers: {
-            Authorization: `Bearer ${authState.token}`, // Include the token in the headers
-          },
-        }
-      );
+      const response = await addToCart(productId, quantity, authState.token);
      
       console.log('Product added to cart:', response.data);
       console.log('QUANTITYYYYY')
       console.log(quantity)
       setCart((prev) => {
         const updatedCart = new Set(prev).add(productId); // Update cart state
-        updateLocalStorageCart(updatedCart); // Update localStorage
+        updateLocalStorageCartFromService(updatedCart); // Update localStorage
         return updatedCart;
       });
     } catch (error) {
@@ -273,19 +245,15 @@ const ProductList = () => {
   };
 
   // Remove product from cart
-  const removeFromCart = async (productId) => {
+  const removeFromCartFromService = async (productId) => {
     setLoadingCart((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
-      const response = await axios.delete(`http://localhost:8002/cart/${productId}`, {
-        headers: {
-          Authorization: `Bearer ${authState.token}`, // Include the token in the headers
-        },
-      });
+      const response = await removeFromCart(productId, authState.token);
       console.log('Product removed from cart:', response.data);
       setCart((prev) => {
         const updatedCart = new Set(prev);
         updatedCart.delete(productId); // Update cart state
-        updateLocalStorageCart(updatedCart); // Update localStorage
+        updateLocalStorageCartFromService(updatedCart); // Update localStorage
         return updatedCart;
       });
     } catch (error) {
@@ -330,10 +298,10 @@ const ProductList = () => {
                 product={product}
                 isInWishlist={wishlist.has(product._id)}
                 isInCart={cart.has(product._id)}
-                onAddToWishlist={() => addToWishlist(product._id)}
-                onRemoveFromWishlist={() => removeFromWishlist(product._id)}
-                onAddToCart={(quantity) => addToCart(product._id, quantity)}
-                onRemoveFromCart={() => removeFromCart(product._id)}
+                onAddToWishlist={() => addToWishlistFromService(product._id)}
+                onRemoveFromWishlist={() => removeFromWishlistFromService(product._id)}
+                onAddToCart={(quantity) => addToCartFromService(product._id, quantity)}
+                onRemoveFromCart={() => removeFromCartFromService(product._id)}
                 loadingWishlist={loadingWishlist.get(product._id)}
                 loadingCart={loadingCart.get(product._id)}
               />
