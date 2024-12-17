@@ -6,7 +6,7 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [role, setRole] = useState('Buyer');
-    const [phone, setPhone] = useState(''); // Added phone state
+    const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
@@ -27,7 +27,7 @@ const Register = () => {
                 body: JSON.stringify({
                     email,
                     password,
-                    phone, // Added phone to the request
+                    phone,
                     role
                 }),
             });

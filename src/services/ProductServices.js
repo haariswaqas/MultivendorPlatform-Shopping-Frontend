@@ -19,6 +19,25 @@ export const fetchProducts = async (token) => {
   }
 };
 
+export const fetchProductsByCategory = async (token, type) => {
+  try {
+    const response = await fetch(`${API_URL}category/${type}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch products by category')
+    }
+    
+    const data = await response.json();
+    return data; // Directly return the data, not data.products
+  } catch (error) {
+    throw new Error(error.message || 'failed to fetch products by category')
+  }
+}
+
 export const updateLocalStorageWishlist = (updatedWishlist) => {
   localStorage.setItem('wishlist', JSON.stringify(Array.from(updatedWishlist)));
 };
@@ -61,7 +80,7 @@ export const addToCart = async (productId, quantity, token) => {
   try {
     const response = await axios.put(
       `${API_URL}cart`,
-      { _id: productId, qty: quantity },
+      { product: { _id: productId }, amount: quantity },  // Corrected request body structure
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -73,6 +92,7 @@ export const addToCart = async (productId, quantity, token) => {
     throw new Error('Error adding product to cart: ' + error.message);
   }
 };
+
 
 export const removeFromCart = async (productId, token) => {
   try {

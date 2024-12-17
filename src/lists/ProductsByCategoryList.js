@@ -1,26 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../authentication/AuthContext';
+import { Link, useParams } from 'react-router-dom';
+import { fetchProducts, updateLocalStorageWishlist, updateLocalStorageCart, addToWishlist, removeFromWishlist, addToCart, removeFromCart } from '../services/ProductServices';
 import { 
+  HeartIcon, 
   ShoppingCartIcon, 
-  HeartIcon,
-  InfoIcon,
-    PlusIcon, 
-    MinusIcon, 
-   
+  PlusIcon, 
+  MinusIcon, 
+  InfoIcon 
 } from 'lucide-react';
 
-import { 
-  fetchProducts, 
-  updateLocalStorageWishlist, 
-  updateLocalStorageCart, 
-  addToWishlist, 
-  removeFromWishlist, 
-  addToCart, 
-  removeFromCart 
-} from '../services/ProductServices';
-
-const CategoryProductCard = ({ 
+const ProductCard = ({ 
   product, 
   isInWishlist, 
   isInCart, 
@@ -35,9 +25,11 @@ const CategoryProductCard = ({
 
   const handleQuantityChange = (change) => {
     setQuantity(Math.max(1, quantity + change));
+    
   };
 
   return (
+    
     <div className="bg-white/10 backdrop-blur-lg border border-white/20 
     rounded-2xl p-6 space-y-4 transform transition-all duration-300 
     hover:scale-105 hover:shadow-2xl group relative overflow-hidden">
@@ -94,7 +86,7 @@ const CategoryProductCard = ({
         {isInCart ? (
           <button
             onClick={onRemoveFromCart}
-            disabled={loadingCart || !product.available}
+            disabled={loadingCart}
             className="flex items-center justify-center space-x-2 py-2 
             bg-red-600/70 text-white rounded-full hover:bg-red-700 
             disabled:opacity-50"
@@ -121,7 +113,7 @@ const CategoryProductCard = ({
             </div>
             <button
               onClick={() => onAddToCart(quantity)}
-              disabled={loadingCart || !product.available}
+              disabled={loadingCart}
               className="flex items-center justify-center space-x-2 py-2 
               bg-blue-600/70 text-white rounded-full hover:bg-blue-700 
               disabled:opacity-50"
@@ -136,9 +128,9 @@ const CategoryProductCard = ({
   );
 };
 
-const CategoryProductsList = () => {
-  const { type } = useParams();
+const ProductList = () => {
   const { authState } = useAuth();
+  const { type } = useParams();
   const [products, setProducts] = useState([]);
   const [error, setError] = useState('');
   const [wishlist, setWishlist] = useState(new Set());
@@ -146,6 +138,8 @@ const CategoryProductsList = () => {
   const [loadingWishlist, setLoadingWishlist] = useState(new Map());
   const [loadingCart, setLoadingCart] = useState(new Map());
 
+  // Previous useEffect and helper functions remain the same as in the original component
+  // ... (keep the existing localStorage, fetch, and action methods)
   // Initialize wishlist and cart from localStorage
   useEffect(() => {
     const storedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
@@ -155,11 +149,19 @@ const CategoryProductsList = () => {
     setCart(new Set(Array.isArray(storedCart) ? storedCart : []));
   }, []);
 
-  // Fetch products by category
+  // Fetch products from backend
   useEffect(() => {
     const fetchProductsByCategory = async () => {
       try {
-        const data = await fetchProducts(authState.token, type);
+        const response = await fetch(`http://localhost:8002/category/${type}`, {
+          headers: {
+            'Authorization': `Bearer ${authState.token}`, // Include the token in the headers
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch products by category');
+        }
+        const data = await response.json();
         setProducts(data);
       } catch (error) {
         setError(error.message || 'Failed to fetch products by category');
@@ -167,7 +169,7 @@ const CategoryProductsList = () => {
     };
 
     fetchProductsByCategory();
-  }, [type, authState.token]);
+  }, [type, authState.token]); // Dependency on token
 
   // Save wishlist to localStorage
   const updateLocalStorageWishlistFromService = (updatedWishlist) => {
@@ -181,13 +183,13 @@ const CategoryProductsList = () => {
 
   // Add product to wishlist
   const addToWishlistFromService = async (productId) => {
-    setLoadingWishlist((prev) => new Map(prev).set(productId, true));
+    setLoadingWishlist((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
       const response = await addToWishlist(productId, authState.token);
       console.log('Product added to wishlist:', response.data);
       setWishlist((prev) => {
-        const updatedWishlist = new Set(prev).add(productId);
-        updateLocalStorageWishlistFromService(updatedWishlist);
+        const updatedWishlist = new Set(prev).add(productId); // Update wishlist state
+        updateLocalStorageWishlistFromService(updatedWishlist); // Update localStorage
         return updatedWishlist;
       });
     } catch (error) {
@@ -195,7 +197,7 @@ const CategoryProductsList = () => {
     } finally {
       setLoadingWishlist((prev) => {
         const updatedLoading = new Map(prev);
-        updatedLoading.delete(productId);
+        updatedLoading.delete(productId); // Clear loading state
         return updatedLoading;
       });
     }
@@ -203,14 +205,14 @@ const CategoryProductsList = () => {
 
   // Remove product from wishlist
   const removeFromWishlistFromService = async (productId) => {
-    setLoadingWishlist((prev) => new Map(prev).set(productId, true));
+    setLoadingWishlist((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
       const response = await removeFromWishlist(productId, authState.token);
       console.log('Product removed from wishlist:', response.data);
       setWishlist((prev) => {
         const updatedWishlist = new Set(prev);
-        updatedWishlist.delete(productId);
-        updateLocalStorageWishlistFromService(updatedWishlist);
+        updatedWishlist.delete(productId); // Update wishlist state
+        updateLocalStorageWishlistFromService(updatedWishlist); // Update localStorage
         return updatedWishlist;
       });
     } catch (error) {
@@ -218,7 +220,7 @@ const CategoryProductsList = () => {
     } finally {
       setLoadingWishlist((prev) => {
         const updatedLoading = new Map(prev);
-        updatedLoading.delete(productId);
+        updatedLoading.delete(productId); // Clear loading state
         return updatedLoading;
       });
     }
@@ -226,13 +228,17 @@ const CategoryProductsList = () => {
 
   // Add product to cart with quantity
   const addToCartFromService = async (productId, quantity) => {
-    setLoadingCart((prev) => new Map(prev).set(productId, true));
+    setLoadingCart((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
+      console.log('QUANTITYYYY',quantity)
       const response = await addToCart(productId, quantity, authState.token);
+     
       console.log('Product added to cart:', response.data);
+      console.log('QUANTITYYYYY')
+      console.log(quantity)
       setCart((prev) => {
-        const updatedCart = new Set(prev).add(productId);
-        updateLocalStorageCartFromService(updatedCart);
+        const updatedCart = new Set(prev).add(productId); // Update cart state
+        updateLocalStorageCartFromService(updatedCart); // Update localStorage
         return updatedCart;
       });
     } catch (error) {
@@ -240,7 +246,7 @@ const CategoryProductsList = () => {
     } finally {
       setLoadingCart((prev) => {
         const updatedLoading = new Map(prev);
-        updatedLoading.delete(productId);
+        updatedLoading.delete(productId); // Clear loading state
         return updatedLoading;
       });
     }
@@ -248,14 +254,14 @@ const CategoryProductsList = () => {
 
   // Remove product from cart
   const removeFromCartFromService = async (productId) => {
-    setLoadingCart((prev) => new Map(prev).set(productId, true));
+    setLoadingCart((prev) => new Map(prev).set(productId, true)); // Set loading state for the product
     try {
       const response = await removeFromCart(productId, authState.token);
       console.log('Product removed from cart:', response.data);
       setCart((prev) => {
         const updatedCart = new Set(prev);
-        updatedCart.delete(productId);
-        updateLocalStorageCartFromService(updatedCart);
+        updatedCart.delete(productId); // Update cart state
+        updateLocalStorageCartFromService(updatedCart); // Update localStorage
         return updatedCart;
       });
     } catch (error) {
@@ -263,12 +269,12 @@ const CategoryProductsList = () => {
     } finally {
       setLoadingCart((prev) => {
         const updatedLoading = new Map(prev);
-        updatedLoading.delete(productId);
+        updatedLoading.delete(productId); // Clear loading state
         return updatedLoading;
       });
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 
     py-12 px-6 relative overflow-hidden">
@@ -279,7 +285,7 @@ const CategoryProductsList = () => {
       <div className="container mx-auto">
         <h1 className="text-5xl font-extrabold text-center mb-12 
         bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-white to-purple-300">
-          {type} Category
+          Our Products
         </h1>
 
         {error && (
@@ -290,12 +296,12 @@ const CategoryProductsList = () => {
 
         {products.length === 0 ? (
           <div className="text-center text-white/75">
-            No products available in this category.
+            No products available at the moment.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {products.map((product) => (
-              <CategoryProductCard 
+              <ProductCard
                 key={product._id}
                 product={product}
                 isInWishlist={wishlist.has(product._id)}
@@ -315,4 +321,4 @@ const CategoryProductsList = () => {
   );
 };
 
-export default CategoryProductsList;
+export default ProductList;
