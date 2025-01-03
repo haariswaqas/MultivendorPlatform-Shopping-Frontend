@@ -19,7 +19,7 @@ const EditProfileForm = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('http://localhost:8001/profile', {
+        const response = await axios.get('https://multivendorapp-user-service.onrender.com/profile', {
           headers: {
             Authorization: `Bearer ${authState.token}`,
           },
@@ -57,7 +57,7 @@ const EditProfileForm = () => {
     setLoading(true);
 
     try {
-      const response = await axios.put('http://localhost:8001/profile', formData, {
+      const response = await axios.put('https://multivendorapp-user-service.onrender.com/profile', formData, {
         headers: {
           Authorization: `Bearer ${authState.token}`,
         },
@@ -75,116 +75,113 @@ const EditProfileForm = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Edit Profile</h2>
+    <section className="bg-gradient-to-r from-indigo-600 to-indigo-800 min-h-screen flex items-center justify-center py-12 px-6">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <h2 className="text-2xl font-semibold mb-4 text-center">Edit Profile</h2>
 
-      {/* Show error message if there's an error */}
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {/* Show error message if there's an error */}
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
-      <form onSubmit={handleSubmit}>
-        {/* Form fields go here */}
-        {/* Similar to the ProfileForm JSX you already have */}
-        {/* Example for Name */}
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-lg font-medium mb-2">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
-        {/* Add other fields similarly... */}
-                {/* Add other fields similarly... */}
-         {/* Gender field */}
-         <div className="mb-4">
-          <label htmlFor="gender" className="block text-lg font-medium mb-2">Gender</label>
-          <select
-            id="gender"
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-md"
-            required
-          >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          
-          </select>
-        </div>
+        <form onSubmit={handleSubmit}>
+          {/* Name field */}
+          <div className="mb-4">
+            <label htmlFor="name" className="block text-lg font-medium mb-2">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        {/* Street field */}
-        <div className="mb-4">
-          <label htmlFor="street" className="block text-lg font-medium mb-2">Street</label>
-          <input
-            type="text"
-            id="street"
-            name="street"
-            value={formData.street}
-            onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
+          {/* Gender field */}
+          <div className="mb-4">
+            <label htmlFor="gender" className="block text-lg font-medium mb-2">Gender</label>
+            <select
+              id="gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
 
-        {/* Postal Code field */}
-        <div className="mb-4">
-          <label htmlFor="postalCode" className="block text-lg font-medium mb-2">Postal Code</label>
-          <input
-            type="text"
-            id="postalCode"
-            name="postalCode"
-            value={formData.postalCode}
-            onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
+          {/* Street field */}
+          <div className="mb-4">
+            <label htmlFor="street" className="block text-lg font-medium mb-2">Street</label>
+            <input
+              type="text"
+              id="street"
+              name="street"
+              value={formData.street}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        {/* City field */}
-        <div className="mb-4">
-          <label htmlFor="city" className="block text-lg font-medium mb-2">City</label>
-          <input
-            type="text"
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
+          {/* Postal Code field */}
+          <div className="mb-4">
+            <label htmlFor="postalCode" className="block text-lg font-medium mb-2">Postal Code</label>
+            <input
+              type="text"
+              id="postalCode"
+              name="postalCode"
+              value={formData.postalCode}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        {/* Country field */}
-        <div className="mb-4">
-          <label htmlFor="country" className="block text-lg font-medium mb-2">Country</label>
-          <input
-            type="text"
-            id="country"
-            name="country"
-            value={formData.country}
-            onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
+          {/* City field */}
+          <div className="mb-4">
+            <label htmlFor="city" className="block text-lg font-medium mb-2">City</label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        
-        <div className="mt-6">
-          <button
-            type="submit"
-            className={`w-full p-3 text-white ${loading ? 'bg-gray-500' : 'bg-blue-500'} rounded-md`}
-            disabled={loading}
-          >
-            {loading ? 'Updating...' : 'Update Profile'}
-          </button>
-        </div>
-      </form>
-    </div>
+          {/* Country field */}
+          <div className="mb-4">
+            <label htmlFor="country" className="block text-lg font-medium mb-2">Country</label>
+            <input
+              type="text"
+              id="country"
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+
+          <div className="mt-6">
+            <button
+              type="submit"
+              className={`w-full p-3 text-white ${loading ? 'bg-gray-500' : 'bg-indigo-600'} rounded-md`}
+              disabled={loading}
+            >
+              {loading ? 'Updating...' : 'Update Profile'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 };
 

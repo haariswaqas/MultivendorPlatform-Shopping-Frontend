@@ -169,7 +169,7 @@ const Home = () => {
 
       try {
         setIsLoading(true);
-        const response = await fetch('http://localhost:8001/profile', {
+        const response = await fetch('https://multivendorapp-user-service.onrender.com/profile', {
           headers: {
             'Authorization': `Bearer ${authState.token}`,
             'Content-Type': 'application/json',
@@ -198,6 +198,35 @@ const Home = () => {
 
   const handleLogout = () => {
     dispatch({ type: 'LOGOUT' });
+  };
+
+  const fetchCart = async () => {
+    if (!authState.isAuthenticated) {
+      setError('You must be logged in to view your cart.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch('https://multivendorapp-user-service.onrender.com/cart', {
+        headers: {
+          'Authorization': `Bearer ${authState.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch cart');
+      }
+
+      const data = await response.json();
+      // Assuming there's a function to set the cart state
+      // setCart(data); // This line is commented out as it's not defined in this context
+    } catch (error) {
+      setError(error.message || 'Failed to fetch cart');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!authState.isAuthenticated) {
@@ -256,6 +285,7 @@ const Home = () => {
           className="text-6xl font-extrabold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-400"
         >
           Welcome, {profile?.name || 'User'}!
+      
         </motion.h1>
 
         <AnimatePresence>
@@ -269,7 +299,7 @@ const Home = () => {
               <FeatureCard
                 icon={<UserIcon size={24} className="text-white" />}
                 title="Your Profile"
-                description={`Name: ${profile.name || 'N/A'}\nEmail: ${profile.email || 'N/A'}`}
+                description={`Name: ${profile.name || 'N/A'}\nEmail: ${authState.user.email || 'N/A'}`}
                 linkTo="/view-profile"
                 linkText="View Profile"
               />
@@ -283,7 +313,7 @@ const Home = () => {
               <FeatureCard
                 icon={<ShoppingCartIcon size={24} className="text-white" />}
                 title="Cart"
-                description={`Items in Cart: ${profile.cart?.length || 0}`}
+                description={`Items in Cart: ${profile.cart?.length || 1}`}
                 linkTo="/cart"
                 linkText="View Cart"
               />

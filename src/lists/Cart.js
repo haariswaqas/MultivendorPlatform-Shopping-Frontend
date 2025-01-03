@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useAuth } from '../authentication/AuthContext';
 import { 
   ShoppingCartIcon, 
@@ -24,13 +23,14 @@ const Cart = () => {
     const fetchCart = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:8003/cart', {
+            const response = await fetch('https://multivendorplatform-shopping-service.onrender.com/cart', {
                 headers: { Authorization: `Bearer ${authState.token}` },
             });
-            setCart(response.data);
+            const data = await response.json();
+            setCart(data);
             setLoading(false);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to fetch cart');
+            setError(err.message || 'Failed to fetch cart');
             setLoading(false);
         }
     };
@@ -59,13 +59,18 @@ const Cart = () => {
         };
 
         try {
-            await axios.post('http://localhost:8003/order', orderPayload, {
-                headers: { Authorization: `Bearer ${authState.token}` },
+            await fetch('https://multivendorplatform-shopping-service.onrender.com/order', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authState.token}` 
+                },
+                body: JSON.stringify(orderPayload)
             });
             alert('Order placed successfully!');
             fetchCart();
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to place order');
+            setError(err.message || 'Failed to place order');
         }
     };
 
@@ -77,6 +82,7 @@ const Cart = () => {
                     <div className="flex items-center space-x-4">
                         <ShoppingCartIcon className="w-8 h-8 text-blue-300" />
                         <h1 className="text-3xl font-bold text-white">Your Cart</h1>
+                        <span className="text-white/75">{cart.length > 0 ? `${cart[0].items.length} items` : 'Empty'}</span>
                     </div>
                     {error && (
                         <div className="bg-red-600/50 text-white px-4 py-2 rounded-lg">

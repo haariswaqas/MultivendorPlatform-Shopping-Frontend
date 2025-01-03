@@ -19,7 +19,7 @@ const Register = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:8001/signup', {
+            const response = await fetch('https://multivendorapp-user-service.onrender.com/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ const Register = () => {
     return (
         <section className="bg-gradient-to-r from-indigo-600 to-indigo-800 min-h-screen flex items-center justify-center py-12 px-6">
             <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 space-y-6">
-                <a href="#" className="text-3xl font-bold text-center text-indigo-700 mb-4">
+                <a href="" className="text-3xl font-bold text-center text-indigo-700 mb-4">
                     MultiVendorApp
                 </a>
                 <h1 className="text-2xl font-semibold text-gray-800 text-center mb-6">

@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../authentication/AuthContext'; // Adjust the path as necessary
-import { useParams } from 'react-router-dom'; // Import useParams to get the product ID
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios'; // For API requests
+import { FaUpload } from 'react-icons/fa'; // For upload icon
 
 const ProductForm = () => {
   const { authState } = useAuth();
-  const { id } = useParams(); // Get the product ID from the URL
+  const { id } = useParams();
+  const navigate  = useNavigate();
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
-  const [img, setImg] = useState('');
+  const [img, setImg] = useState(''); // Cloudinary image URL
   const [type, setType] = useState('');
-  const [stock, setStock] = useState(0); // Changed from unit to stock
+  const [stock, setStock] = useState(0);
   const [price, setPrice] = useState(0);
   const [available, setAvailable] = useState(true);
-  const [seller, setSeller] = useState(''); // Changed from supplier to seller
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploading, setUploading] = useState(false); // Uploading status
 
-  // List of product categories
   const PRODUCT_CATEGORIES = [
-    'Electronics',
-    'Fashion',
-    'Home and Kitchen',
+    'Electronics', 'Fashion', 'Home and Kitchen',
     'Health and Personal Care',
     'Books and Stationery',
     'Sports and Outdoors',
@@ -38,101 +38,123 @@ const ProductForm = () => {
     'Art and Craft',
     'Industrial and Scientific',
     'Video Games and Consoles',
-    'Music'
+    'Music' // Add categories as needed
   ];
 
-  // Fetch product details if editing
+  // Fetch existing product details if editing
   useEffect(() => {
     if (id) {
       const fetchProduct = async () => {
         try {
-          const response = await fetch(`http://localhost:8002/${id}`, {
-            method: 'GET',
+          const response = await axios.get(`https://multivendorapp-products-microservice.onrender.com/${id}`, {
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authState.token}`,
+              Authorization: `Bearer ${authState.token}`,
             },
           });
-          if (!response.ok) {
-            throw new Error('Failed to fetch product details');
-          }
-          const product = await response.json();
+          const product = response.data;
           setName(product.name);
           setDesc(product.desc);
           setImg(product.img);
           setType(product.type);
-          setStock(product.stock); // Changed from unit to stock
+          setStock(product.stock);
           setPrice(product.price);
           setAvailable(product.available);
-          setSeller(product.seller); // Changed from supplier to seller
         } catch (error) {
-          setError(error.message || 'Failed to fetch product details');
+          setError('Failed to fetch product details.');
         }
       };
       fetchProduct();
     }
   }, [id, authState.token]);
 
+// Handle Cloudinary image upload
+const handleImageUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  setUploading(true); // Show uploading status
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'upload_preset'); // Replace with your Cloudinary preset
+  formData.append('cloud_name', 'dqwub0fhb'); // Replace with your Cloudinary cloud name
+
+  try {
+    const response = await axios.post(
+      'https://api.cloudinary.com/v1_1/dqwub0fhb/image/upload',
+      formData
+    );
+    const uploadedImageUrl = response.data.secure_url;
+    console.log('Uploaded Image URL:', uploadedImageUrl); // Log the correct URL immediately
+    setImg(uploadedImageUrl); // Update the state with the correct URL
+    setUploading(false);
+  } catch (error) {
+    setError('Image upload failed.');
+    setUploading(false);
+  }
+};
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log(name,desc,  img, // Image URL from Cloudinary    type,
+      stock,
+      price,
+      available)
 
     const productData = {
       name,
       desc,
-      img,
+      img, // Image URL from Cloudinary
       type,
-      stock, // Changed from unit to stock
+      stock,
       price,
       available,
-      seller, // Changed from supplier to seller
     };
 
     try {
       const url = id
-        ? `http://localhost:8002/product/${id}`
-        : 'http://localhost:8002/product/create';
+        ? `https://multivendorapp-products-microservice.onrender.com/product/${id}`
+        : 'https://multivendorapp-products-microservice.onrender.com/product/create';
       const method = id ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await axios({
         method,
+        url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authState.token}`,
+          Authorization: `Bearer ${authState.token}`,
         },
-        body: JSON.stringify(productData),
+        data: productData,
       });
 
-      if (!response.ok) {
-        throw new Error(id ? 'Failed to update product' : 'Failed to create product');
-      }
-
-      const data = await response.json();
       setSuccess(id ? 'Product updated successfully!' : 'Product created successfully!');
       if (!id) {
-        // Reset form only when creating a new product
         setName('');
         setDesc('');
         setImg('');
         setType('');
-        setStock(0); // Reset stock
+        setStock(0);
         setPrice(0);
         setAvailable(true);
-        setSeller(''); // Reset seller
       }
+      navigate('/all-products')
     } catch (error) {
-      setError(error.message || 'Failed to save product');
+      setError('You are not the seller and do not have the permission to edit this product.');
     }
   };
 
-  if (authState.user?.role === 'Buyer') {
-    return <p>You do not have permission to create or edit a product.</p>;
+  if (authState.user.role !== 'Seller') {
+    return <p>You are not authorized to view this page.</p>;
   }
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-6">{id ? 'Edit Product' : 'Create Product'}</h2>
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
+      <h2 className="text-3xl font-bold mb-6">{id ? 'Edit Product' : 'Create Product'}</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {success && <p className="text-green-500 mb-4">{success}</p>}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
             Product Name
@@ -143,7 +165,7 @@ const ProductForm = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           />
         </div>
 
@@ -156,36 +178,42 @@ const ProductForm = () => {
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
             required
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           />
         </div>
 
         <div>
           <label htmlFor="img" className="block text-sm font-medium text-gray-700">
-            Image URL
+            Upload Image
           </label>
-          <input
-            id="img"
-            type="text"
-            value={img}
-            onChange={(e) => setImg(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
+          <div className="flex items-center space-x-4">
+            <input
+              id="img"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            />
+            <FaUpload className="text-gray-500" />
+          </div>
+          {uploading && <p className="text-gray-500 mt-2">Uploading...</p>}
+          {img && <img src={img} alt="Uploaded" className="mt-4 h-24 w-24 object-cover rounded-full" />}
         </div>
 
         <div>
           <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-            Type
+            Category
           </label>
           <select
             id="type"
             value={type}
             onChange={(e) => setType(e.target.value)}
             required
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            <option value="">Select a category</option>
+            <option value="" disabled>
+              Select a category
+            </option>
             {PRODUCT_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -204,7 +232,7 @@ const ProductForm = () => {
             value={stock}
             onChange={(e) => setStock(Number(e.target.value))}
             required
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           />
         </div>
 
@@ -215,11 +243,10 @@ const ProductForm = () => {
           <input
             id="price"
             type="number"
-          
             value={price}
             onChange={(e) => setPrice(Number(e.target.value))}
             required
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           />
         </div>
 
@@ -236,26 +263,10 @@ const ProductForm = () => {
           />
         </div>
 
-        <div>
-          <label htmlFor="seller" className="block text-sm font-medium text-gray-700">
-            Seller
-          </label>
-          <input
-            id="seller"
-            type="text"
-            value={seller}
-            onChange={(e) => setSeller(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-        </div>
-
-        {error && <p className="text-red-500">{error}</p>}
-        {success && <p className="text-green-500">{success}</p>}
-
+        {/* Additional fields can go here */}
         <button
           type="submit"
-          className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
+          className="w-full py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
         >
           {id ? 'Update Product' : 'Create Product'}
         </button>

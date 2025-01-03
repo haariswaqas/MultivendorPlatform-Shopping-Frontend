@@ -104,6 +104,22 @@ const NavBar = () => {
             <span>Add Product</span>
           </Link>
 
+          <Link 
+            to="/all-products" 
+            className="flex items-center space-x-2 text-white hover:bg-blue-700/30 px-3 py-2 rounded-md transition-all duration-200"
+          >
+            <PlusSquareIcon size={18} />
+            <span>All Products</span>
+          </Link>
+
+          <Link 
+            to="/view-profile" 
+            className="flex items-center space-x-2 text-white hover:bg-blue-700/30 px-3 py-2 rounded-md transition-all duration-200"
+          >
+            <UserIcon size={18} />
+            <span>View Profile</span>
+          </Link>
+
           <button
             onClick={handleLogout}
             className="flex items-center space-x-2 text-white hover:bg-red-700/30 px-3 py-2 rounded-md transition-all duration-200"

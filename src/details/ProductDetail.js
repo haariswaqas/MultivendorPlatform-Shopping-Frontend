@@ -1,66 +1,108 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Added useNavigate
-import { useAuth } from '../authentication/AuthContext'; // Import AuthContext
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../authentication/AuthContext';
+import { deleteProduct } from '../services/ProductServices';
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // Initialize navigate
-  const { authState } = useAuth(); // Access the auth context
+  const navigate = useNavigate();
+  const { authState } = useAuth();
   const [product, setProduct] = useState(null);
+  const [sellerName, setSellerName] = useState('Loading...');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndSellerDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:8002/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${authState.token}`, // Include the token in the headers
-          },
+        const productResponse = await fetch(`https://multivendorapp-products-microservice.onrender.com/${id}`, {
+          headers: { 'Authorization': `Bearer ${authState.token}` },
         });
-        if (!response.ok) {
+        if (!productResponse.ok) {
           throw new Error('Failed to fetch product details');
         }
-        const data = await response.json();
-        setProduct(data);
-      } catch (error) {
-        setError(error.message || 'Failed to fetch product details');
+        const productData = await productResponse.json();
+        setProduct(productData);
+
+        if (productData.seller) {
+          try {
+            const sellerResponse = await fetch(`https://multivendorapp-user-service.onrender.com/product/seller/${productData.seller}`, {
+              headers: { 'Authorization': `Bearer ${authState.token}` },
+            });
+            if (!sellerResponse.ok) {
+              throw new Error('Failed to fetch seller details');
+            }
+            const sellerData = await sellerResponse.json();
+            setSellerName(sellerData.name || 'Name not available');
+          } catch {
+            setSellerName('Seller name not available');
+          }
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to fetch product details');
       }
     };
 
-    fetchProduct();
-  }, [id, authState.token]); // Dependency on token
+    fetchProductAndSellerDetails();
+  }, [id, authState.token]);
 
-  const handleEditClick = () => {
-    navigate(`/edit-product/${id}`); // Navigate to the edit page
+  const handleEditClick = () => navigate(`/edit-product/${id}`);
+
+  const handleDeleteClick = async () => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await deleteProduct(id, authState.token);
+        alert('Product deleted successfully');
+        navigate('/products');
+      } catch (err) {
+        alert(err.message || 'Failed to delete product');
+      }
+    }
   };
 
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  if (!product) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500 text-center mt-8">{error}</p>;
+  if (!product) return <p className="text-white text-center mt-8">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 py-12 px-6 relative overflow-hidden">
-      {/* Decorative Blurred Circles */}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 py-12 px-6 relative">
       <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl"></div>
 
-      <div className="container mx-auto">
-        <h2 className="text-5xl font-extrabold text-center mb-12 
-        bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-white to-purple-300">
+      <div className="container mx-auto max-w-4xl bg-white/10 rounded-lg p-6 shadow-md">
+        <h2 className="text-4xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
           {product.name}
         </h2>
-        <img src={product.img} alt={product.name} className="w-full h-48 object-cover rounded-lg mb-4" />
-        <p className="text-white text-lg mb-2">{product.desc}</p>
-        <p className="text-2xl font-bold text-blue-300 mb-2">Price: ${product.price}</p>
-        <p className="text-white mb-2">Available: {product.available ? 'Yes' : 'No'}</p>
-        <p className="text-white mb-2">Stock: {product.stock}</p>
-        <p className="text-white">Supplier: {product.seller}</p>
-        {/* Edit Button */}
-        <button
-          onClick={handleEditClick}
-          className="mt-6 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
-        >
-          Edit Product
-        </button>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          <img
+            src={product.img}
+            alt={product.name}
+            className="w-full lg:w-1/2 h-auto object-cover rounded-lg"
+          />
+
+          <div className="flex-1">
+            <p className="text-white text-lg mb-4">{product.desc}</p>
+            <p className="text-2xl font-bold text-blue-300 mb-2">Price: ${product.price}</p>
+            <p className="text-white mb-2">Type: {product.type}</p>
+            <p className="text-white mb-2">Available: {product.available ? 'Yes' : 'No'}</p>
+            <p className="text-white mb-2">Stock: {product.stock}</p>
+            <p className="text-white mb-2">Seller: {sellerName}</p>
+          </div>
+        </div>
+
+        <div className="flex justify-center mt-8 space-x-4">
+          <button
+            onClick={handleEditClick}
+            className="py-2 px-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            Edit Product
+          </button>
+          <button
+            onClick={handleDeleteClick}
+            className="py-2 px-6 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          >
+            Delete Product
+          </button>
+        </div>
       </div>
     </div>
   );

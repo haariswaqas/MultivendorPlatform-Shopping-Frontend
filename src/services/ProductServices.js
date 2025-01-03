@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8002/';
+
+const API_URL = 'https://multivendorapp-products-microservice.onrender.com/';
 
 export const fetchProducts = async (token) => {
   try {
@@ -18,6 +19,25 @@ export const fetchProducts = async (token) => {
     throw new Error(error.message || 'Failed to fetch products');
   }
 };
+
+export const deleteProduct = async (someProductId, token) => {
+  try {
+    const response = await axios.delete(`${API_URL}product/${someProductId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return response.data;
+  } catch (error) {
+    throw new Error('Error deleting the product: You cannot DELETE this Product; it does not belong to you');
+  }
+};
+
 
 export const fetchProductsByCategory = async (token, type) => {
   try {
@@ -87,7 +107,9 @@ export const addToCart = async (productId, quantity, token) => {
         },
       }
     );
+   
     return response.data;
+
   } catch (error) {
     throw new Error('Error adding product to cart: ' + error.message);
   }
@@ -104,5 +126,21 @@ export const removeFromCart = async (productId, token) => {
     return response.data;
   } catch (error) {
     throw new Error('Error removing product from cart: ' + error.message);
+  }
+};
+
+export const fetchWishlist = async (token) => {
+  try {
+    const response = await axios.get(`${API_URL}wishlist`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return response.data;
+  } catch (error) {
+    throw new Error('Error fetching wishlist: ' + error.message);
   }
 };

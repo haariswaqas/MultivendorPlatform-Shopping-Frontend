@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../authentication/AuthContext'; // Import AuthContext
-import { updateLocalStorageWishlist, updateLocalStorageCart, addToWishlist, removeFromWishlist, addToCart, removeFromCart } from '../services/ProductServices';
+import {fetchWishlist} from '../services/ProductServices';
 
 const Wishlist = () => {
   const { authState } = useAuth(); // Access the auth context
@@ -11,7 +11,7 @@ const Wishlist = () => {
     const fetchProfile = async () => {
       try {
         // Fetch profile data using the profile API
-        const profileResponse = await fetch(`http://localhost:8001/profile`, {
+        const profileResponse = await fetch(`https://multivendorapp-user-service.onrender.com/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${authState.token}`, // Include the token in headers
@@ -33,7 +33,7 @@ const Wishlist = () => {
             if (typeof id === 'object' && id._id) {
               id = id._id; // Adjust the ID if it's an object with an `_id` field
             }
-            const itemResponse = await fetch(`http://localhost:8002/${id}`, {
+            const itemResponse = await fetch(`https://multivendorapp-user-service.onrender.com/${id}`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${authState.token}`,

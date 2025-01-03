@@ -13,7 +13,7 @@ const ProfileDetail = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('http://localhost:8001/profile', {
+        const response = await axios.get('https://multivendorapp-user-service.onrender.com/profile', {
           headers: {
             Authorization: `Bearer ${authState.token}`,
           },
@@ -35,54 +35,54 @@ const ProfileDetail = () => {
 
   const handleEditProfile = () => {
     // Navigate to the '/create-profile' route when the edit button is clicked
-    navigate('/create-profile');
+    navigate('/edit-profile');
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Profile Details</h2>
+    <div className="max-w-md mx-auto bg-purple-100 p-8 shadow-lg rounded-lg">
+      <h2 className="text-3xl font-bold mb-4 text-center text-purple-500">Profile Details</h2>
 
       {/* Show error message if there's an error */}
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
       {/* Profile details display */}
       {profileData && (
-        <div>
-          <div className="mb-4">
+        <div className="space-y-6">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-medium text-lg">Name:</h3>
-            <p>{profileData.name}</p>
+            <p className="text-lg">{profileData.name}</p>
           </div>
 
-          <div className="mb-4">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-medium text-lg">Gender:</h3>
-            <p>{profileData.gender}</p>
+            <p className="text-lg">{profileData.gender}</p>
           </div>
 
-          <div className="mb-4">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-medium text-lg">Street:</h3>
-            <p>{profileData.street}</p>
+            <p className="text-lg">{profileData.street}</p>
           </div>
 
-          <div className="mb-4">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-medium text-lg">Postal Code:</h3>
-            <p>{profileData.postalCode}</p>
+            <p className="text-lg">{profileData.postalCode}</p>
           </div>
 
-          <div className="mb-4">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-medium text-lg">City:</h3>
-            <p>{profileData.city}</p>
+            <p className="text-lg">{profileData.city}</p>
           </div>
 
-          <div className="mb-4">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-medium text-lg">Country:</h3>
-            <p>{profileData.country}</p>
+            <p className="text-lg">{profileData.country}</p>
           </div>
 
           {/* Edit Profile Button */}
           <div className="mt-4">
             <button
               onClick={handleEditProfile}
-              className="w-full p-3 bg-blue-500 text-white rounded-md"
+              className="w-full p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
             >
               Edit Profile
             </button>

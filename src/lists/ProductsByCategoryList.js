@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../authentication/AuthContext';
 import { Link, useParams } from 'react-router-dom';
-import { fetchProducts, updateLocalStorageWishlist, updateLocalStorageCart, addToWishlist, removeFromWishlist, addToCart, removeFromCart } from '../services/ProductServices';
+import { fetchProducts,fetchProductsByCategory, updateLocalStorageWishlist, updateLocalStorageCart, addToWishlist, removeFromWishlist, addToCart, removeFromCart } from '../services/ProductServices';
 import { 
   HeartIcon, 
   ShoppingCartIcon, 
@@ -153,7 +153,7 @@ const ProductList = () => {
   useEffect(() => {
     const fetchProductsByCategory = async () => {
       try {
-        const response = await fetch(`http://localhost:8002/category/${type}`, {
+        const response = await fetch(`https://multivendorapp-products-microservice.onrender.com/category/${type}`, {
           headers: {
             'Authorization': `Bearer ${authState.token}`, // Include the token in the headers
           },
